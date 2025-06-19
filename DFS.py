@@ -129,24 +129,6 @@ if __name__ == "__main__":
     else:
         print(f"Tidak ada jalur yang ditemukan dari {initial_city_1} ke {goal_city_1}.\n")
 
-    # Skenario 2: Oradea ke Eforie
-    initial_city_2 = 'Oradea'
-    goal_city_2 = 'Eforie'
-    romania_problem_2 = RomaniaMap(initial_city_2, goal_city_2)
-    print(f"Mencari jalur dari {initial_city_2} ke {goal_city_2}...")
-    solution_path_2 = depth_first_search(romania_problem_2)
-
-    if solution_path_2:
-        print("Jalur ditemukan:", " -> ".join(solution_path_2))
-        current_cost = 0
-        for i in range(len(solution_path_2) - 1):
-            city_a = solution_path_2[i]
-            city_b = solution_path_2[i+1]
-            current_cost += romania_problem_2.graph[city_a][city_b]
-        print(f"Total biaya (jarak) jalur yang ditemukan: {current_cost} km\n")
-    else:
-        print(f"Tidak ada jalur yang ditemukan dari {initial_city_2} ke {goal_city_2}.\n")
-
     # Skenario 3: Mencoba mencari jalur ke kota yang tidak terhubung (contoh)
     initial_city_3 = 'Arad'
     goal_city_3 = 'London' # Kota yang tidak ada di peta Rumania
