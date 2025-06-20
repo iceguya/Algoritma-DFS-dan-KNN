@@ -9,23 +9,21 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 
-print("--- Memulai Eksekusi Script ---")  # DEBUG POINT 1
+print("--- Memulai Eksekusi Script ---")
 
-# --- 1. Unduh Data dari Kaggle ---
-print("Mengunduh dataset dari Kaggle...")  # DEBUG POINT 2
+print("Mengunduh dataset dari Kaggle...")
 try:
     path = kagglehub.dataset_download("bismasajjad/global-ai-job-market-and-salary-trends-2025")
-    print(f"Dataset berhasil diunduh ke: {path}")  # DEBUG POINT 3
+    print(f"Dataset berhasil diunduh ke: {path}")
 except Exception as e:
-    print(f"Gagal mengunduh dataset: {e}")  # DEBUG POINT 4
+    print(f"Gagal mengunduh dataset: {e}")
     print("Mencoba menggunakan path lokal jika sudah diunduh sebelumnya...")
     path = os.path.expanduser("~/.kaggle/kagglehub/datasets/bismasajjad/global-ai-job-market-and-salary-trends-2025/current")
     if not os.path.exists(path):
-        print("Path lokal tidak ditemukan. Tidak dapat melanjutkan tanpa dataset.")  # DEBUG POINT 5
+        print("Path lokal tidak ditemukan. Tidak dapat melanjutkan tanpa dataset.")
         exit()
 
-# --- 2. Cari File CSV ---
-print("Mencari file CSV di folder yang diunduh...")  # DEBUG POINT 6
+print("Mencari file CSV di folder yang diunduh...")
 csv_file_name = None
 for root, _, files in os.walk(path):
     for file in files:
@@ -36,58 +34,46 @@ for root, _, files in os.walk(path):
         break
 
 if not csv_file_name:
-    print(f"Tidak ditemukan file CSV di {path}. Harap verifikasi struktur dataset.")  # DEBUG POINT 7
+    print(f"Tidak ditemukan file CSV di {path}. Harap verifikasi struktur dataset.")
     exit()
 
 full_csv_path = os.path.join(path, csv_file_name)
-print(f"Membaca file CSV: {full_csv_path}")  # DEBUG POINT 8
+print(f"Membaca file CSV: {full_csv_path}")
 
 try:
     df = pd.read_csv(full_csv_path)
-    print("Data berhasil dimuat. Melanjutkan pra-pemrosesan...")  # DEBUG POINT 9
+    print("Data berhasil dimuat. Melanjutkan pra-pemrosesan...")
 except Exception as e:
-    print(f"Gagal membaca file CSV dari {full_csv_path}: {e}")  # DEBUG POINT 10
+    print(f"Gagal membaca file CSV dari {full_csv_path}: {e}")
     exit()
 
-# --- 3. Pra-pemrosesan Data ---
 print("Menampilkan 5 baris awal:")
 print(df.head())
 
-# Pilih kolom yang relevan
-required_columns = ['Job Title', 'Location', 'Salary', 'Experience Level', 'Industry']
+required_columns = ['job_title', 'company_location', 'salary_usd', 'experience_level', 'industry']
 if not all(col in df.columns for col in required_columns):
     print(f"Tidak semua kolom yang dibutuhkan tersedia dalam dataset. Kolom yang dibutuhkan: {required_columns}")
     exit()
 
-# Bersihkan data gaji jika perlu (hilangkan simbol, ubah ke float)
-df['Salary'] = df['Salary'].astype(str).replace('[^0-9.]', '', regex=True).astype(float)
-
-# Hilangkan baris dengan NaN
 df.dropna(subset=required_columns, inplace=True)
 
-# Label Encoding untuk kolom kategorikal
 label_enc = LabelEncoder()
-df['Job Title'] = label_enc.fit_transform(df['Job Title'])
-df['Location'] = label_enc.fit_transform(df['Location'])
-df['Experience Level'] = label_enc.fit_transform(df['Experience Level'])
-df['Industry'] = label_enc.fit_transform(df['Industry'])
+df['job_title'] = label_enc.fit_transform(df['job_title'])
+df['company_location'] = label_enc.fit_transform(df['company_location'])
+df['experience_level'] = label_enc.fit_transform(df['experience_level'])
+df['industry'] = label_enc.fit_transform(df['industry'])
 
-# Feature & Target
-X = df[['Location', 'Salary', 'Experience Level', 'Industry']]
-y = df['Job Title']
+X = df[['company_location', 'salary_usd', 'experience_level', 'industry']]
+y = df['job_title']
 
-# Normalisasi fitur
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 
-# Split data
 X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
 
-# --- 4. Pelatihan Model ---
 model = KNeighborsClassifier(n_neighbors=5)
 model.fit(X_train, y_train)
 
-# --- 5. Evaluasi Model ---
 y_pred = model.predict(X_test)
 
 print("\n=== Evaluasi Model ===")
